@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "truncation": null,
+  "padding": null,
+  "added_tokens": [
+    {
+      "id": 0,
+      "content": "^",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    }
+  ],
+  "normalizer": null,
+  "pre_tokenizer": {
+    "type": "Whitespace"
+  },
+  "post_processor": null,
+  "decoder": {
+    "type": "ByteLevel",
+    "add_prefix_space": true,
+    "trim_offsets": true,
+    "use_regex": true
+  },
+  "model": {
+    "type": "BPE",
+    "dropout": null,
+    "unk_token": null,
+    "continuing_subword_prefix": null,
+    "end_of_word_suffix": null,
+    "fuse_unk": false,
+    "vocab": {
+      "^": 0,
+      " ": 1,
+      "'": 2,
+      "a": 3,
+      "b": 4,
+      "c": 5,
+      "d": 6,
+      "e": 7,
+      "f": 8,
+      "g": 9,
+      "h": 10,
+      "i": 11,
+      "j": 12,
+      "k": 13,
+      "l": 14,
+      "m": 15,
+      "n": 16,
+      "o": 17,
+      "p": 18,
+      "q": 19,
+      "r": 20,
+      "s": 21,
+      "t": 22,
+      "u": 23,
+      "v": 24,
+      "w": 25,
+      "x": 26,
+      "y": 27,
+      "z": 28,
+      "th": 29,
+      "the": 30,
+      "in": 31,
+      "an": 32,
+      "er": 33,
+      "re": 34,
+      "on": 35,
+      "ou": 36,
+      "ed": 37,
+      "en": 38,
+      "at": 39
+    },
+    "merges": [
+      "t h",
+      "th e",
+      "i n",
+      "a n",
+      "e r",
+      "r e",
+      "o n",
+      "o u",
+      "e d",
+      "e n",
+      "a t"
+    ]
+  }
+}
