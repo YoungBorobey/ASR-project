@@ -1,8 +1,10 @@
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Union
 
 import torch
+import numpy as np
 import json
 
+from string import ascii_lowercase
 from .char_text_encoder import CharTextEncoder
 from collections import defaultdict
 from tqdm import tqdm
@@ -12,7 +14,7 @@ import os
 import torchaudio
 from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, processors
 import shutil
-
+from torch import tensor as Tensor
 from speechbrain.utils.data_utils import download_file
 os.environ["TOKENIZERS_PARALLELISM"] = "True"
 URL_LINKS = {
@@ -38,7 +40,7 @@ class CTC_BPE_TextEncoder(CharTextEncoder):
         super().__init__(alphabet)
 
         self._data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
-
+        self.alphabet = list(ascii_lowercase)
         if path is not None:
             tokenizer = Tokenizer.from_file(path)
         else:
@@ -58,19 +60,34 @@ class CTC_BPE_TextEncoder(CharTextEncoder):
             os.remove(tmp_path)
 
 
-        self.ind2char, self.char2ind = self.get_bpe_dicts(tokenizer)
-        print(self.ind2char)
+        self.tokenizer = tokenizer
 
-    def get_bpe_dicts(self, tokenizer):
-        char2ind = tokenizer.get_vocab()
-        ind2char = {v: k for k, v in char2ind.items()}
-        return ind2char, char2ind
+    def encode(self, text) -> Tensor:
+        text = self.normalize_text(text)
+        return Tensor(self.tokenizer.encode(text.lower()).ids).unsqueeze(0)
 
+    def decode(self, vector: Union[Tensor, np.ndarray, List[int]]):
+        return self.tokenizer.decode(vector).strip()
+    def ctc_decode(self, inds: List[int]) -> str:
+        # TODO: your code here
+        merged_ids = []
+        last = -1
+        for i in inds:
+            if i != last:
+                merged_ids.append(i)
+            last = i
+        return self.decode(merged_ids)
+    def __len__(self):
+        return self.tokenizer.get_vocab_size()
+
+    def __getitem__(self, item: int):
+        return self.tokenizer.decode([item])
+        
     def train_bpe(self, file_path, vocab_size):
         #init tokenizer
         special_tokens = [self.EMPTY_TOK]
         tokenizer = Tokenizer(models.BPE())
-        tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel()
         tokenizer.decoder = decoders.ByteLevel()
 
         #init trainer 
@@ -83,20 +100,6 @@ class CTC_BPE_TextEncoder(CharTextEncoder):
         tokenizer.train([file_path], trainer=trainer)
         return tokenizer
 
-    def ctc_decode(self, inds: List[int]) -> str:
-        # TODO: your code here
-        merged_symbols = []
-        last_symbol = 51
-        for i in inds:
-            curr_symb = self.ind2char[i]
-            
-            #check if valid 
-            if curr_symb != last_symbol and curr_symb != self.EMPTY_TOK:
-                merged_symbols.append(curr_symb)
-            last_symbol = curr_symb
-        
-        return ''.join(merged_symbols)
-    
 
     def ctc_beam_search(self, probs: torch.tensor, probs_length,
                         beam_size: int = 100) -> List[Hypothesis]:
@@ -105,7 +108,7 @@ class CTC_BPE_TextEncoder(CharTextEncoder):
         """
         assert len(probs.shape) == 2
         char_length, voc_size = probs.shape
-        assert voc_size == len(self.ind2char)
+        assert voc_size == len(self.tokenizer.get_vocab_size())
         hypos: List[Hypothesis] = []
         
 
@@ -124,7 +127,7 @@ class CTC_BPE_TextEncoder(CharTextEncoder):
 
         for (text, last_char), text_prob in dp.items():
             for i in range(len(probs)):
-                curr_char = self.ind2char[i]
+                curr_char = self.__getitem__(i)
                 if curr_char == last_char:
                     new_dp[(text, last_char)] += text_prob * probs[i]
                 elif curr_char == self.EMPTY_TOK:

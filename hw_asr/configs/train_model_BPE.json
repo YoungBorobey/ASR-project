@@ -100,7 +100,7 @@
   "optimizer": {
     "type": "Adam",
     "args": {
-      "lr": 1e-3
+      "lr": 2e-4
     }
   },
   "loss": {
@@ -127,7 +127,7 @@
       "steps_per_epoch": 1000,
       "epochs": 100,
       "anneal_strategy": "cos",
-      "max_lr": 5e-3,
+      "max_lr": 1e-3,
       "pct_start": 0.2
     }
   },
@@ -140,7 +140,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "asr_project",
-    "wandb_project_run_name" : "train_BPE",
+    "wandb_project_run_name" : "train_BPE_v3",
     "len_epoch": 1000,
     "grad_norm_clip": 10
   }

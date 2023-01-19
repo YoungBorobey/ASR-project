@@ -1,0 +1,127 @@
+{
+  "name": "DeepSpeech2",
+  "n_gpu": 1,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "MelSpectrogram",
+      "args": {
+      }
+    },
+    "log_spec": true
+  },
+  "text_encoder" : {
+    "type": "CTC_BPE_TextEncoder",
+    "args": {
+      "vocab_size" : 40
+    }
+  },
+  "augmentations": {
+    "wave": [
+      {
+        "type" : "Gain",
+        "args" : {"min_gain_in_db" : -15.0, "max_gain_in_db" : 5.0, "p" : 0.5}
+      },
+      {
+        "type" : "GaussNoise",
+        "args" : {"loc" : 0, "scale" : 0.004}
+      }
+    ],
+    "spectrogram": [
+      {
+        "type" : "TimeMasking",
+        "args" : {"time_mask_param" : 15, "p" : 0.4}
+      },
+      {
+        "type" : "FrequencyMasking",
+        "args" : {"freq_mask_param" : 25}
+      }
+    ]
+  },
+  "arch": {
+    "type": "DeepSpeech2",
+    "args": {
+      "n_feats": 128,
+      "fc_hidden": 256
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 10,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "train-clean-100",
+            "max_audio_length": 20.0,
+            "max_text_length": 200,
+            "limit": 10
+          }
+        }
+      ]
+    },
+    "val": {
+      "batch_size": 10,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "dev-clean",
+            "max_audio_length": 20.0,
+            "max_text_length": 200,
+            "limit": 10
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 1e-3
+    }
+  },
+  "loss": {
+    "type": "CTCLoss",
+    "args": {}
+  },
+  "metrics": [
+    {
+      "type": "ArgmaxWERMetric",
+      "args": {
+        "name": "WER (argmax)"
+      }
+    },
+    {
+      "type": "ArgmaxCERMetric",
+      "args": {
+        "name": "CER (argmax)"
+      }
+    }
+  ],
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 100,
+      "epochs": 15,
+      "anneal_strategy": "cos",
+      "max_lr": 5e-3,
+      "pct_start": 0.2
+    }
+  },
+  "trainer": {
+    "epochs": 15,
+    "save_dir": "saved/",
+    "save_period": 5,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "asr_project",
+    "wandb_project_run_name" : "train_BPE_one_epoch",
+    "len_epoch": 100,
+    "grad_norm_clip": 10
+  }
+}

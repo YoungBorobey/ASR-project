@@ -14,4 +14,9 @@ def calc_wer(target_text, predicted_text) -> float:
     if len(splitted_target) == 0:
         return 1
     splitted_pred = predicted_text.split(' ')
+    # res = editdistance.distance(splitted_target, splitted_pred) / len(splitted_target)
+    # print('target:', target_text)
+    # print('pred:', predicted_text)
+    # print('wer:', res)
+    # print(len(target_text), len(predicted_text))
     return editdistance.distance(splitted_target, splitted_pred) / len(splitted_target)

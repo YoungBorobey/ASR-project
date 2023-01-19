@@ -229,13 +229,12 @@ class Trainer(BaseTrainer):
             target = BaseTextEncoder.normalize_text(target)
             wer = calc_wer(target, pred) * 100
             cer = calc_cer(target, pred) * 100
-
             rows[Path(audio_path).name] = {
                 "target": target,
                 "raw prediction": raw_pred,
                 "predictions": pred,
                 "wer": wer,
-                "cer": cer,
+                "cer": cer
             }
         self.writer.add_table("predictions", pd.DataFrame.from_dict(rows, orient="index"))
 

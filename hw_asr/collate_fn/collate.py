@@ -43,5 +43,4 @@ def collate_fn(dataset_items: List[dict]):
         'audio_path' : audio_path,
         'audio' : audio_records
     }
-
     return result_batch
